@@ -1,0 +1,20 @@
+@CHARSET "UTF-8";
+
+body {
+	margin: 20px 10px;
+}
+
+.border-bottom {
+	border-bottom-width: 1px;
+	border-bottom-color: black;
+	border-bottom-style: solid;
+}
+
+#pagebar {
+	text-align: center;
+}
+
+.table th,.table td{
+	text-align: center;
+}
+.bui-dialog .bui-stdmod-body {padding: 0px}

@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.investin.dao.AdminUserDao">
+	<select id="getAllUser" resultType="cn.investin.model.AdminUser">
+		SELECT * FROM admin_user
+		order by id
+	</select>
+
+	<select id="getUserByIdAndPwd" parameterType="cn.investin.model.AdminUser"
+		resultType="int">
+		SELECT count(*) FROM admin_user where id=#{id} and
+		pwd=#{pwd}
+	</select>
+
+	<insert id="addUser">
+		insert admin_user(pwd,type) values('111111','2')
+	</insert>
+
+	<update id="updatePwd" parameterType="cn.investin.model.AdminUser">
+		update admin_user set
+		pwd=#{pwd} where id=#{id}
+	</update>
+
+	<select id="getSetting" resultType="hashmap">
+		SELECT * FROM
+		inviting_setting
+	</select>
+
+
+	<select id="getBaseData" resultType="cn.investin.model.BaseData">
+		SELECT * FROM
+		inviting_basedata order by order_num
+		limit #{limitStart},#{pageSize}
+	</select>
+	<select id="getBaseDataById" resultType="cn.investin.model.BaseData">
+		SELECT * FROM
+		inviting_basedata where id=#{id}
+	</select>
+
+	<select id="getCountForBaseData" resultType="int">
+		SELECT count(*) FROM
+		inviting_basedata
+	</select>
+
+	<insert id="addBaseData" parameterType="cn.investin.model.BaseData">
+		INSERT INTO
+		inviting_basedata (type, code, name_zh,name_en,name_es,tel,`add`,order_num)
+		VALUES
+		(#{type}, #{code}, #{name_zh},
+		#{name_en},#{name_es},#{tel},#{add},#{order_num});
+	</insert>
+
+	<update id="updateBaseData" parameterType="cn.investin.model.BaseData">
+		UPDATE
+		inviting_basedata
+		SET
+		type = #{type},
+		code = #{code},
+		name_zh =
+		#{name_zh},
+		name_en =
+		#{name_en},
+		name_es =
+		#{name_es},
+		tel= #{tel},
+		`add` = #{add},
+		order_num =
+		#{order_num}
+		WHERE
+		id= #{id};
+	</update>
+
+	<delete id="delBaseData">
+		DELETE FROM inviting_basedata WHERE id=#{id}
+	</delete>
+
+	<update id="updateSetting">
+		UPDATE inviting_setting
+		SET
+		_value = #{_value}
+		WHERE
+		_key = #{_key}
+	</update>
+</mapper>

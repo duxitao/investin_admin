@@ -1,0 +1,19 @@
+@CHARSET "UTF-8";
+
+body {
+	text-align: center;
+	margin: 100px auto;
+	font-size: 14px;
+}
+.content{
+	margin: 50px auto;
+	text-align: center;
+	width: 300px;
+}
+.form-horizontal .control-label {
+	width: 80px;
+}
+#msg{
+	display: none;
+	margin: 10px;
+}

@@ -1,0 +1,520 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.investin.dao.InvitingInfoDao">
+	<select id="getAllScale" resultType="cn.investin.model.Scale">
+		SELECT * FROM inviting_scale
+		order by id
+	</select>
+	<select id="getAllField" resultType="cn.investin.model.Field">
+		SELECT id,name_zh
+		fieldDesc_cn, name_en fieldDesc_en FROM inviting_basedata
+		where
+		type='2' order by order_num
+	</select>
+	<select id="getInquiryAccount" resultType="cn.investin.model.InquiryAccount">
+
+		SELECT * FROM inviting_inquiry_account
+		<where>
+			<if test="email != null">
+				email like '%${email}%'
+			</if>
+			<if test="tel != null">
+				AND tel like '%${tel}%'
+			</if>
+		</where>
+		limit #{limitStart},#{pageSize}
+	</select>
+	<select id="getCountForInquiryAccount" resultType="int">
+
+		SELECT count(*) FROM inviting_inquiry_account
+		<where>
+			<if test="email != null">
+				email like '%${email}%'
+			</if>
+			<if test="tel != null">
+				AND tel like '%${tel}%'
+			</if>
+		</where>
+	</select>
+	<select id="getInvitingInfo" resultType="cn.investin.model.InvitingInfo">
+		SELECT
+		t2.id,
+		t2.email,
+		userName,
+		t1.tel,
+		title_en,
+		title_cn,
+		description_cn,
+		description_en,
+		dateConfirmed,
+		inquiryNum,
+		scaleDesc_en,
+		t4.name_en
+		fieldDesc_en
+		FROM
+		inviting_account t1,
+		inviting_info t2,
+		inviting_scale
+		t3,
+		inviting_basedata
+		t4
+		WHERE
+		t1.email = t2.email
+		AND
+		t2.scaleid = t3.id
+		AND
+		t2.fieldid = t4.id
+		AND t2.upload_status =
+		#{upload_status}
+		<if test='payStatus == "1"'>
+			AND t1.pay_status = '1'
+		</if>
+		<if test='inquiryStatus == "1"'>
+			AND t2.inquiryNum = 0
+		</if>
+		<if test="querytext != null">
+			AND
+			(t2.description_en LIKE '%${querytext}%'
+			OR
+			t2.description_cn LIKE '%${querytext}%'
+			OR
+			t2.title_cn LIKE
+			'%${querytext}%'
+			OR t2.title_en LIKE
+			'%${querytext}%')
+		</if>
+
+		limit #{limitStart},#{pageSize}
+	</select>
+	<select id="getCountForInvitingInfo" resultType="int">
+		SELECT
+		count(*)
+		FROM
+		inviting_account t1,
+		inviting_info t2,
+		inviting_scale
+		t3,
+		inviting_basedata
+		t4
+		WHERE
+		t1.email = t2.email
+		AND t2.scaleid = t3.id
+		AND
+		t2.fieldid = t4.id
+		AND t2.upload_status = #{upload_status}
+		<if test='payStatus == "1"'>
+			AND t1.pay_status = '1'
+		</if>
+		<if test='inquiryStatus == "1"'>
+			AND t2.inquiryNum = 0
+		</if>
+		<if test="querytext != null">
+			AND
+			(t2.description_en LIKE '%${querytext}%'
+			OR
+			t2.description_cn LIKE '%${querytext}%'
+			OR
+			t2.title_cn LIKE
+			'%${querytext}%'
+			OR t2.title_en LIKE
+			'%${querytext}%')
+		</if>
+	</select>
+	<select id="getInvitingInfoById" resultType="cn.investin.model.InvitingInfo">
+		SELECT
+		t2.id,
+		t2.email,
+		t2.is_test,
+		t2.is_large,
+		title_en,
+		title_cn,
+		status,
+		description_cn,
+		description_en,
+		dateConfirmed,
+		scaleDesc_en,
+		t4.name_en
+		fieldDesc_en,
+		additional1,
+		additional2,
+		additional3
+		FROM
+		inviting_info t2,
+		inviting_scale t3,
+		inviting_basedata t4
+		WHERE
+		t2.scaleid =
+		t3.id
+		AND
+		t2.fieldid = t4.id
+		AND
+		t2.id = #{id}
+	</select>
+
+	<!-- 查询邮件发送对象 -->
+	<select id="getInvitingInfoByfieldId" resultType="cn.investin.model.InvitingInfo">
+		SELECT
+		*
+		FROM
+		inviting_info
+		where upload_status='1'
+		and is_large='0'
+		<if test='fieldId != "-1"'>
+			and
+			fieldId = #{fieldId}
+		</if>
+
+		ORDER BY is_top,inquiryNum,last_inquiry_time
+	</select>
+
+	<select id="updateInvitingInfo" parameterType="cn.investin.model.InvitingInfo">
+		UPDATE inviting_info
+		SET
+		title_cn = #{title_cn},
+		description_cn =
+		#{description_cn},
+		additional1 = #{additional1},
+		additional2 =
+		#{additional2},
+		additional3 = #{additional3},
+		status =
+		#{status},
+		<if test='status == "3"'>
+			dateConfirmed = NOW(),
+			upload_status ='1',
+		</if>
+		updateTime = NOW(),
+		updateBy
+		= #{updateBy}
+		WHERE
+		id = #{id}
+	</select>
+	<select id="getInquiry" resultType="cn.investin.model.Inquiry">
+		SELECT
+		t.id,t.info_id,inviting_info.title_en,t.inquiry_email,t.content,t.requires1,t.requires2,t.requires3,t.content_en,t.requires1_en,t.requires2_en,t.requires3_en,t.status,t.create_time,t.group_send
+		FROM
+		inviting_inquiry t,
+		inviting_info
+		WHERE
+		t.info_id = inviting_info.id
+		and inviting_info.is_large='0'
+		ORDER BY create_time DESC limit
+		#{limitStart},#{pageSize}
+	</select>
+	<select id="viewInquiry" resultType="cn.investin.model.Inquiry">
+		SELECT
+		t.id,t.info_id,inviting_info.title_en,title_cn,description_cn,inquiry_email,t.content,t.requires1,t.requires2,t.requires3,t.content_en,t.requires1_en,t.requires2_en,t.requires3_en,t.status,t.create_time,t.group_send
+		FROM
+		inviting_inquiry t,
+		inviting_info
+		WHERE
+		t.info_id = inviting_info.id
+		and t.id= #{id}
+	</select>
+
+
+	<select id="getCountForInquiry" resultType="int">
+		SELECT
+		count(*)
+		FROM
+		inviting_inquiry t,
+		inviting_info
+		WHERE
+		t.info_id = inviting_info.id
+		and
+		inviting_info.is_large='0'
+	</select>
+
+	<select id="getLargeInquiry" resultType="cn.investin.model.Inquiry">
+		SELECT
+		t.id,t.info_id,inviting_info.title_en,t.inquiry_email,t.content,t.requires1,t.requires2,t.requires3,t.content_en,t.requires1_en,t.requires2_en,t.requires3_en,t.status,t.create_time,t.group_send
+		FROM
+		inviting_inquiry t,
+		inviting_info
+		WHERE
+		t.info_id = inviting_info.id
+		and inviting_info.is_large='1'
+		ORDER BY create_time DESC limit
+		#{limitStart},#{pageSize}
+	</select>
+
+	<select id="getCountForlargeInquiry" resultType="int">
+		SELECT
+		count(*)
+		FROM
+		inviting_inquiry t,
+		inviting_info
+		WHERE
+		t.info_id = inviting_info.id
+		and
+		inviting_info.is_large='1'
+	</select>
+
+	<update id="updateInquiry" parameterType="cn.investin.model.Inquiry">
+		UPDATE inviting_inquiry
+		SET
+		content_en = #{content_en},
+		requires1_en = #{requires1_en},
+		requires2_en = #{requires2_en},
+		requires3_en = #{requires3_en},
+		status=#{status}
+		WHERE
+		id = #{id}
+	</update>
+	<select id="getInquiryById" resultType="cn.investin.model.Inquiry">
+		SELECT * FROM
+		inviting_inquiry where id = #{id}
+	</select>
+
+	<select id="getInquiryByStatus" resultType="cn.investin.model.Inquiry">
+		SELECT * FROM
+		inviting_inquiry where status=#{status}
+
+	</select>
+	<select id="getAccountByEmail" resultType="cn.investin.model.Account">
+		SELECT * FROM
+		inviting_account where email=#{email}
+	</select>
+	<insert id="addSendemaiLog" parameterType="cn.investin.model.EmailLog">
+		INSERT INTO
+		inviting_sendemail_log
+		(inquiry_id,
+		sender,
+		from_address,
+		to_address,
+		subject,
+		content,
+		type)
+		VALUES
+		(
+		#{inquiry_id},
+		#{sender},
+		#{from_address},
+		#{to_address},
+		#{subject},
+		#{content},
+		#{type})
+	</insert>
+	<select id="getAccount" resultType="cn.investin.model.Account">
+		SELECT
+		t1.*,t2.name_en as countryDesc_en,t2.name_zh as
+		countryDesc_cn,t3.inquiryNum
+		FROM
+		inviting_account t1,
+		inviting_basedata
+		t2,
+		inviting_info t3
+		WHERE
+		t1.contryId = t2.id
+		and t2.type='1'
+		and t1.id>0
+		and t1.email=t3.email
+		<if test="userName != null">
+			and t1.userName like '%${userName}%'
+		</if>
+		<if test="tel != null">
+			and t1.tel like '%${tel}%'
+		</if>
+		<if test='isPay == "1"'>
+			and (t1.pay_status='1' or t1.pay_status='2')
+		</if>
+		<if test='countryId != "-1" and  countryId != null and dateFlag == "1"'>
+			and t1.contryId=#{countryId}
+		</if>
+		<if test='dateFlag == "1"'>
+			and DATE_FORMAT(t1.pay_time,'%Y%m')=#{regDate}
+		</if>
+		order by createTime desc
+		limit #{limitStart},#{pageSize}
+	</select>
+	<select id="getCountForAccount" resultType="int">
+		SELECT
+		count(*)
+		FROM
+		inviting_account t1,
+		inviting_basedata t2
+		WHERE
+		t1.contryId = t2.id
+		and t2.type='1'
+		and t1.id>0
+		<if test="userName != null">
+			and t1.userName like '%${userName}%'
+		</if>
+		<if test="tel != null">
+			and t1.tel like '%${tel}%'
+		</if>
+		<if test='isPay == "1"'>
+			and (t1.pay_status='1' or t1.pay_status='2')
+		</if>
+		<if test='countryId != "-1" and  countryId != null and dateFlag == "1"'>
+			and t1.contryId=#{countryId}
+		</if>
+		<if test='dateFlag == "1"'>
+			and DATE_FORMAT(t1.pay_time,'%Y%m')=#{regDate}
+		</if>
+
+	</select>
+	<select id="getAccountOfRequest" resultType="cn.investin.model.Account">
+		SELECT
+		t1.*,t2.name_en as countryDesc_en,t2.name_zh as countryDesc_cn
+		FROM
+		inviting_account t1,
+		inviting_basedata t2
+		WHERE
+		t1.contryId = t2.id
+		and t2.type='1'
+
+		<if test='countryId != "-1" and  countryId != null'>
+			and t1.contryId=#{countryId}
+		</if>
+		<if test='newFlag == "1"'>
+			and request_status='1'
+		</if>
+		<if test='newFlag == "0" or newFlag==null  or newFlag==""'>
+			and (request_status='1' OR request_status='2')
+		</if>
+		order by createTime desc
+		limit #{limitStart},#{pageSize}
+	</select>
+	<select id="getCountForAccountOfRequest" resultType="int">
+		SELECT
+		count(*)
+		FROM
+		inviting_account t1,
+		inviting_basedata t2
+		WHERE
+		t1.contryId = t2.id
+		and t2.type='1'
+		<if test='countryId != "-1" and  countryId != null'>
+			and t1.contryId=#{countryId}
+		</if>
+		<if test='newFlag == "1"'>
+			and request_status='1'
+		</if>
+		<if test='newFlag == "0" or newFlag==null or newFlag==""'>
+			and (request_status='1' OR request_status='2')
+		</if>
+
+	</select>
+
+	<select id="getAllCountry" resultType="cn.investin.model.Country">
+		SELECT id,name_zh
+		countryDesc_cn, name_en countryDesc_en FROM
+		inviting_basedata where
+		type='1' order by order_num
+	</select>
+
+	<update id="updatePayStatus">
+		UPDATE inviting_account
+		SET
+		pay_status = '2',
+		pay_time =
+		NOW()
+		WHERE
+		id = #{id};
+
+		UPDATE inviting_info
+		SET
+		is_top = -
+		UNIX_TIMESTAMP()
+		WHERE
+		email = (SELECT
+		email
+		FROM
+		inviting_credit_code
+		WHERE
+		code = (SELECT
+		credit_code
+		FROM
+		inviting_account
+		WHERE
+		id = #{id}));
+
+
+		UPDATE inviting_credit_code
+		SET
+		email = NULL
+		WHERE
+		code =
+		(SELECT
+		credit_code
+		FROM
+		inviting_account
+		WHERE
+		id = #{id});
+
+
+	</update>
+	<update id="updateRequestStatus">
+		UPDATE inviting_account
+		SET
+		request_status = '2'
+		WHERE
+		id = #{id}
+	</update>
+
+	<insert id="createTestInfo">
+		insert into
+		inviting_info(title_en,description_en,scaleId,fieldId,countryId,email,is_test,is_large)
+		values(#{title_en},#{description_en},#{scaleId},#{fieldId},#{countryId},'test@test.com','1',#{is_large})
+	</insert>
+	<delete id="delInfo">
+		delete from inviting_info where email=#{email}
+	</delete>
+	<delete id="delInfoByID">
+		delete from inviting_info where id=#{id}
+	</delete>
+
+	<delete id="delAccount">
+		delete from inviting_account where email=#{email}
+	</delete>
+
+	<select id="getContactInfo" resultType="cn.investin.model.ContactInfo">
+		SELECT t1.*,t2.name_en as countryName FROM inviting_contact
+		t1,inviting_basedata t2 where t1.countryId=t2.id and type='1'
+		<if test='countryId != "-1"'>
+			and countryId=#{countryId}
+		</if>
+		order by create_time desc
+		limit #{limitStart},#{pageSize}
+	</select>
+
+	<select id="getCountForContactInfo" resultType="int">
+		SELECT count(*) FROM inviting_contact
+		<if test='countryId != "-1"'>
+			where countryId=#{countryId}
+		</if>
+		order by create_time desc
+	</select>
+	<select id="getContactInfoByIdList" resultType="cn.investin.model.ContactInfo">
+		SELECT
+		t1.*,t2.name_en as countryName FROM inviting_contact
+		t1,inviting_basedata t2 where t1.countryId=t2.id and type='1' and
+		t1.id
+		in(${idList}) order by create_time desc
+	</select>
+
+	<select id="getReceiveEmail" resultType="cn.investin.model.ReciveEmail">
+		select *
+		from
+		inviting_receive_newmsg where countryId=#{countryId}
+	</select>
+	<select id="addReceiveEmail">
+		insert into
+		inviting_receive_newmsg(countryId,receive_email,status)
+		values(#{countryId},#{receive_email},#{status})
+	</select>
+	<select id="updateReceiveEmail">
+		update inviting_receive_newmsg set
+		receive_email=#{receive_email},status=#{status} where
+		countryId=#{countryId}
+	</select>
+	<select id="updateReceiveEmailStatus">
+
+		update inviting_receive_newmsg set status=#{status}
+		where countryId=#{countryId}
+	</select>
+
+</mapper>
